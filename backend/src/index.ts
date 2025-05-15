@@ -1,24 +1,26 @@
-import express, { Request, Response } from 'express';
-import mongoose from 'mongoose';
+// src/index.ts
+import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import eventRoutes from './routes/eventRoutes';
+import connectDB from './db/connect';
 
 dotenv.config();
 
-const app = express();
+const app: Application = express();
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || '';
+
 app.use(cors());
 app.use(express.json());
 
-// Example route
-app.get('/', (req: Request, res: Response) => {
-    res.send('API is running');
-  });
+// 🔌 Connect to MongoDB
+connectDB(MONGO_URI);
 
-// Connect DB and start server
-mongoose.connect(process.env.MONGO_URI!)
-  .then(() => {
-    app.listen(process.env.PORT || 5000, () =>
-      console.log(`Server running on port ${process.env.PORT}`)
-    );
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
+// 🔁 Use routes
+app.use('/api/events', eventRoutes);
+
+// 🚀 Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});

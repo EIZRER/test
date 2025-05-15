@@ -1,5 +1,3 @@
-import React from 'react';
-import MapPage from './MapPage/MapPage'; // Зам нь зөв байгаа эсэхээ шалгаарай
 import Map from './MapPage/MapPage';
 
 const HomePage = () => {

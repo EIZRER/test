@@ -1,4 +1,4 @@
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useEffect, useState, useRef } from 'react';
 import PlaceInfoWindow from './PlaceInfoWindow';
 import PlaceMarker from './PlaceMarker';
@@ -19,8 +19,8 @@ const containerStyle = {
 };
 
 const defaultCenter = {
-  lat: 40.7128, // New York
-  lng: -74.0060,
+  lat: 47.9221, 
+  lng:  106.9155,
 };
 
 
@@ -49,9 +49,6 @@ const [eventLocation, setEventLocation] = useState<google.maps.LatLngLiteral | n
 const [events, setEvents] = useState<EventData[]>([]);
 
 
-  
-
-  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   
 
@@ -91,27 +88,27 @@ const [events, setEvents] = useState<EventData[]>([]);
     }
   }, [selectedCategory, userLocation]);
 
-  const handleSelectPlace = (place: any) => {
-    const lat = place.geometry?.location?.lat();
-    const lng = place.geometry?.location?.lng();
+  // const handleSelectPlace = (place: any) => {
+  //   const lat = place.geometry?.location?.lat();
+  //   const lng = place.geometry?.location?.lng();
 
-    if (!map || lat === undefined || lng === undefined) return;
+  //   if (!map || lat === undefined || lng === undefined) return;
 
-    // map.panTo({ lat, lng });
+  //   // map.panTo({ lat, lng });
 
-    setSelectedPlace({
-      lat,
-      lng,
-      name: place.name,
-      vicinity: place.vicinity,
-      icon: place.icon,
-      rating: place.rating,
-      user_ratings_total: place.user_ratings_total,
-      opening_hours: place.opening_hours,
-      photo: place.photos?.[0]?.getUrl({ maxWidth: 250, maxHeight: 100 }),
-    });
+  //   setSelectedPlace({
+  //     lat,
+  //     lng,
+  //     name: place.name,
+  //     vicinity: place.vicinity,
+  //     icon: place.icon,
+  //     rating: place.rating,
+  //     user_ratings_total: place.user_ratings_total,
+  //     opening_hours: place.opening_hours,
+  //     photo: place.photos?.[0]?.getUrl({ maxWidth: 250, maxHeight: 100 }),
+  //   });
 
-  };
+  // };
 
   const handleMapClick = (event: google.maps.MapMouseEvent) => {
     if (!map || !event.latLng) return;
@@ -190,7 +187,7 @@ const [events, setEvents] = useState<EventData[]>([]);
 
   return (
     <LoadScript
-      googleMapsApiKey="thh uurinho kayiig "
+      googleMapsApiKey="AIzaSyCy46LH04gj4QqeOl6mBN7fFId9Lq33m2s"
       libraries={['places']}
     >
       <div style={{ position: 'relative' }}>
@@ -306,7 +303,7 @@ const [events, setEvents] = useState<EventData[]>([]);
         {/* Controls */}
         <StreetViewButton
           map={map}
-          googleApiKey="must have kay "
+          googleApiKey="AIzaSyCy46LH04gj4QqeOl6mBN7fFId9Lq33m2s"
           streetViewActive={streetViewActive}
           setStreetViewActive={setStreetViewActive}
         />
