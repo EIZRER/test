@@ -1,24 +1,39 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import cookieParser from 'cookie-parser';
+import { config } from './config';
+import userRoutes from './routes/userRoutes';
+import eventRoutes from './routes/eventRoutes';
+import authRoutes from './routes/authRoutes';
 
 const app = express();
-app.use(cors());
+
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
 
-// Example route
-app.get('/', (req: Request, res: Response) => {
-    res.send('API is running');
-  });
+// Connect to MongoDB
+mongoose.connect(config.mongoUri)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((error) => console.error('MongoDB connection error:', error));
 
-// Connect DB and start server
-mongoose.connect(process.env.MONGO_URI!)
-  .then(() => {
-    app.listen(process.env.PORT || 5000, () =>
-      console.log(`Server running on port ${process.env.PORT}`)
-    );
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/events', eventRoutes);
+
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: err.message || 'Something went wrong!' });
+});
+
+// Start server
+app.listen(config.port, () => {
+  console.log(`Server is running on port ${config.port}`);
+});

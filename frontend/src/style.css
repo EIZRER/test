@@ -1,3 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar hiding */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Scroll snap alignment */
+.scroll-snap-align-start {
+  scroll-snap-align: start;
+}
+
+/* Touch scrolling */
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+/* Prevent text selection during drag */
+.event-card-container {
+  user-select: none;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
