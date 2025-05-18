@@ -210,8 +210,8 @@ const SearchBar = ({ map ,  selectedPlace }: Props) => {
       borderRadius: '16px', 
       position: 'absolute',
       top: '10px',
-      left: '15   %',
-      transform: 'translateX(-50%)',
+      left: '2%',
+      
       zIndex: 1000,
       width: '400px',
       fontFamily: 'Arial, sans-serif',

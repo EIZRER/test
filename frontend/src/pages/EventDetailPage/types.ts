@@ -6,6 +6,8 @@ export type Event = {
   time: string;
   location: {
     address: string;
+    latitude: number;
+    longitude: number;
   };
   imageUrl: string;
   category: string;

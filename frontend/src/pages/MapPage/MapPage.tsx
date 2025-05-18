@@ -1,5 +1,6 @@
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
 import PlaceInfoWindow from './PlaceInfoWindow';
 import PlaceMarker from './PlaceMarker';
 import Directions from './Directions'; 
@@ -7,6 +8,8 @@ import TravelModeSelector from './TravelModeSelector';
 import DirectionsInfo from './DirectionsInfo';
 import DirectionsForm from './DirectionsForm';
 import AddEventForm from './AddEventForm';
+import CreateEventButton from './CreateEventButton';
+import type { Event } from '../EventDetailPage/types';
 
 import LocateButton from './LocateButton';
 import StreetViewButton from './StreetViewButton';
@@ -23,6 +26,7 @@ const defaultCenter = {
   lng:  106.9155,
 };
 
+const libraries: ("places")[] = ["places"];
 
 interface EventData {
   title: string;
@@ -46,12 +50,9 @@ const [showDirectionsForm, setShowDirectionsForm] = useState(false);
 
 //event
 const [eventLocation, setEventLocation] = useState<google.maps.LatLngLiteral | null>(null);
-const [events, setEvents] = useState<EventData[]>([]);
+const [events, setEvents] = useState<Event[]>([]);
 
-
-
-  
-
+const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   const mapRef = useRef<google.maps.Map | null>(null);
 
@@ -88,52 +89,59 @@ const [events, setEvents] = useState<EventData[]>([]);
     }
   }, [selectedCategory, userLocation]);
 
-  // const handleSelectPlace = (place: any) => {
-  //   const lat = place.geometry?.location?.lat();
-  //   const lng = place.geometry?.location?.lng();
+  // Add useEffect to fetch events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get('/api/events');
+        const formattedEvents = response.data.map((event: Event) => ({
+          ...event,
+          location: {
+            latitude: Number(event.location.latitude),
+            longitude: Number(event.location.longitude)
+          }
+        }));
+        setEvents(formattedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
 
-  //   if (!map || lat === undefined || lng === undefined) return;
-
-  //   // map.panTo({ lat, lng });
-
-  //   setSelectedPlace({
-  //     lat,
-  //     lng,
-  //     name: place.name,
-  //     vicinity: place.vicinity,
-  //     icon: place.icon,
-  //     rating: place.rating,
-  //     user_ratings_total: place.user_ratings_total,
-  //     opening_hours: place.opening_hours,
-  //     photo: place.photos?.[0]?.getUrl({ maxWidth: 250, maxHeight: 100 }),
-  //   });
-
-  // };
+    fetchEvents();
+  }, []);
 
   const handleMapClick = (event: google.maps.MapMouseEvent) => {
-    if (!map || !event.latLng) return;
-  
+    if (!map || !event.latLng || !isCreatingEvent) return;
+
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
 
-      // Set location for AddEventForm
-  setEventLocation({ lat, lng });
+    // Set location for AddEventForm
+    setEventLocation({ lat, lng });
 
-  // Optionally pan to clicked location
+    // Immediately show a temporary marker
+    setSelectedPlace({
+      lat,
+      lng,
+      name: 'Selected Location',
+      vicinity: '',
+      icon: '',
+    });
 
+    // Pan to clicked location
     map.panTo({ lat, lng });
-  
+
     const geocoder = new google.maps.Geocoder();
     const latlng = { lat, lng };
-  
+
     geocoder.geocode({ location: latlng }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
         const placeResult = results[0];
-  
+
         // If placeId exists, fetch full place details
         if (placeResult.place_id) {
           const service = new google.maps.places.PlacesService(map);
-  
+
           const request: google.maps.places.PlaceDetailsRequest = {
             placeId: placeResult.place_id,
             fields: [
@@ -149,7 +157,7 @@ const [events, setEvents] = useState<EventData[]>([]);
               'place_id',
             ],
           };
-  
+
           service.getDetails(request, (placeDetails, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && placeDetails) {
               setSelectedPlace({
@@ -164,7 +172,6 @@ const [events, setEvents] = useState<EventData[]>([]);
                 opening_hours: placeDetails.opening_hours,
                 photo: placeDetails.photos?.[0]?.getUrl({ maxWidth: 250, maxHeight: 100 }),
               });
-  
             }
           });
         } else {
@@ -176,19 +183,28 @@ const [events, setEvents] = useState<EventData[]>([]);
             vicinity: '',
             icon: '',
           });
-  
- ;
         }
       }
     });
   };
-  
-  
+
+  const handleCreateEvent = async (newEvent: Omit<Event, '_id'>) => {
+    // Close the form immediately
+    setEventLocation(null);
+    setIsCreatingEvent(false);
+    
+    try {
+      const response = await axios.post('/api/events', newEvent);
+      setEvents([...events, response.data]);
+    } catch (error) {
+      console.error('Error creating event:', error);
+    }
+  };
 
   return (
     <LoadScript
       googleMapsApiKey="AIzaSyCy46LH04gj4QqeOl6mBN7fFId9Lq33m2s"
-      libraries={['places']}
+      libraries={libraries}
     >
       <div style={{ position: 'relative' }}>
         <GoogleMap
@@ -196,7 +212,6 @@ const [events, setEvents] = useState<EventData[]>([]);
           center={userLocation || defaultCenter}
           zoom={13}
           onLoad={onLoad}
-          
           onClick={handleMapClick}
           options={{
             streetViewControl: false,
@@ -226,17 +241,20 @@ const [events, setEvents] = useState<EventData[]>([]);
           )}
 
           {/* Event Markers */}
-          {events.map((event, index) => (
+          {events.map((event) => (
             <Marker
-              key={`event-${index}`}
-              position={event.location}
+              key={event._id}
+              position={{ 
+                lat: Number(event.location.latitude), 
+                lng: Number(event.location.longitude) 
+              }}
               icon={{
                 url: 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png',
               }}
               onClick={() => {
                 setSelectedPlace({
-                  lat: event.location.lat,
-                  lng: event.location.lng,
+                  lat: Number(event.location.latitude),
+                  lng: Number(event.location.longitude),
                   name: event.title,
                   vicinity: event.description,
                   icon: '',
@@ -244,7 +262,6 @@ const [events, setEvents] = useState<EventData[]>([]);
               }}
             />
           ))}
-
 
           {/* Nearby Places / events marker*/}
           {places.map((place, index) => (
@@ -258,12 +275,16 @@ const [events, setEvents] = useState<EventData[]>([]);
         
 ))}
 
-
           {/* Info Window */}
           {selectedPlace && (
-            <PlaceInfoWindow place={selectedPlace} onClose={() => setSelectedPlace(null)} />
+            <PlaceInfoWindow 
+              place={selectedPlace} 
+              onClose={() => {
+                // Don't clear the selectedPlace, just close the info window
+                setSelectedPlace({...selectedPlace, infoWindowOpen: false});
+              }} 
+            />
           )}
-
 
           {/* Directions Form */}
           
@@ -310,6 +331,8 @@ const [events, setEvents] = useState<EventData[]>([]);
                
         {!streetViewActive && (
           <>
+            <CreateEventButton onClick={() => setIsCreatingEvent(true)} />
+            
             <LocateButton
               map={map}
               setUserLocation={setUserLocation}
@@ -338,26 +361,22 @@ const [events, setEvents] = useState<EventData[]>([]);
             {eventLocation && (
               <AddEventForm
                 location={eventLocation}
-                onSave={(newEvent) => {
-                  setEvents([...events, newEvent]);
+                onSave={handleCreateEvent}
+                onCancel={() => {
                   setEventLocation(null);
+                  setIsCreatingEvent(false);
                 }}
-                onCancel={() => setEventLocation(null)}
               />
             )}
 
-
-          
-                {showDirectionsForm && (
-                  <>  
-                    <TravelModeSelector travelMode={travelMode} setTravelMode={setTravelMode} />
-
-                    {route && <DirectionsInfo route={route} />}
-
-                  </>
-                )}
+            {showDirectionsForm && (
+              <>  
+                <TravelModeSelector travelMode={travelMode} setTravelMode={setTravelMode} />
+                {route && <DirectionsInfo route={route} />}
+              </>
+            )}
                 
-                {!showDirectionsForm && <SearchBar map={map} selectedPlace={selectedPlace}  />}
+            {!showDirectionsForm && <SearchBar map={map} selectedPlace={selectedPlace} />}
 
  
 

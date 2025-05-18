@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
-import Event from '../models/Event';
+import { Event } from '../models/Event';
+
 
 // GET all events
 export const getEvents: RequestHandler = async (req, res) => {
