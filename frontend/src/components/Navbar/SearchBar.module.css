@@ -1,0 +1,8 @@
+.searchInput {
+  border-image: linear-gradient(to right, #ec4899, #3b82f6) 1;
+}
+
+.searchInput:hover,
+.searchInput:focus {
+  border-image: linear-gradient(to right, #ec4899, #3b82f6) 1;
+} 

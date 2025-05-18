@@ -1,15 +1,25 @@
-export type Event = {
+export interface Event {
   _id: string;
+  id?: string; // For backward compatibility
   title: string;
   description: string;
   date: string;
-  time: string;
+  time?: string;
+  venue?: string;
+  price?: number;
+  imageUrl?: string;
+  category: string;
+  status?: 'active' | 'completed' | 'canceled';
   location: {
-    address: string;
     latitude: number;
     longitude: number;
+    address?: string;
   };
-  imageUrl: string;
-  category: string;
-  organizer: string;
-};
+  organizer?: {
+    _id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}

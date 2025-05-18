@@ -6,10 +6,11 @@ import { Textarea } from "../../components/ui/textarea";
 import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { X } from "lucide-react";
+import { categories } from '../../mock/categories';
 
 interface AddEventFormProps {
   location: google.maps.LatLngLiteral;
-  onSave: (event: Omit<Event, '_id'>) => void;
+  onSave: (event: any) => void;
   onCancel: () => void;
 }
 
@@ -18,149 +19,150 @@ const AddEventForm: React.FC<AddEventFormProps> = ({ location, onSave, onCancel 
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [address, setAddress] = useState('');
   const [category, setCategory] = useState('');
-  const [organizer, setOrganizer] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [price, setPrice] = useState('0');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [venue, setVenue] = useState('');
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSave({
-      title,
-      description,
-      date,
-      time,
-      location: {
-        address,
-        latitude: location.lat,
-        longitude: location.lng
-      },
-      category,
-      organizer,
-      imageUrl: imageUrl || 'https://via.placeholder.com/300x200'
-    });
+    
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('date', date);
+    formData.append('time', time);
+    formData.append('category', category);
+    formData.append('price', price);
+    formData.append('venue', venue);
+    formData.append('location[latitude]', String(location.lat));
+    formData.append('location[longitude]', String(location.lng));
+    
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    
+    onSave(formData);
   };
 
   return (
-    <>
-      {/* Blur overlay */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-        onClick={onCancel}
-      />
-      
-      {/* Form */}
-      <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] max-h-[99vh] mb-[40px] z-50">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xl font-bold">Add New Event</CardTitle>
-          <Button onClick={onCancel} className="bg-blue-500 text-white hover:bg-blue-600">
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        <CardContent className="pb-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Event Title</Label>
-                <Input
-                  id="title"
-                  placeholder="Enter event title"
-                  value={title}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  placeholder="Enter event category"
-                  value={category}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setCategory(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Enter event description"
-                value={description}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-4">Add New Event</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block mb-1">Title</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border rounded"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block mb-1">Description</label>
+            <textarea
+              className="w-full px-3 py-2 border rounded"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              rows={3}
+            ></textarea>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-1">Date</label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border rounded"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="time">Time</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={time}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setTime(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                placeholder="Enter event address"
-                value={address}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
-                required
+            <div>
+              <label className="block mb-1">Time</label>
+              <input
+                type="time"
+                className="w-full px-3 py-2 border rounded"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="organizer">Organizer</Label>
-              <Input
-                id="organizer"
-                placeholder="Enter organizer name"
-                value={organizer}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setOrganizer(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL (optional)</Label>
-              <Input
-                id="imageUrl"
-                type="url"
-                placeholder="Enter image URL"
-                value={imageUrl}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setImageUrl(e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
-              <Button type="button" onClick={onCancel} className="bg-blue-500 text-white hover:bg-blue-600">
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-blue-500 text-white hover:bg-blue-600">
-                Create Event
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </>
+          </div>
+          
+          <div>
+            <label className="block mb-1">Category</label>
+            <select
+              className="w-full px-3 py-2 border rounded"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.label}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block mb-1">Venue</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border rounded"
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
+            />
+          </div>
+          
+          <div>
+            <label className="block mb-1">Price</label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 border rounded"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min="0"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block mb-1">Image</label>
+            <input
+              type="file"
+              className="w-full px-3 py-2 border rounded"
+              onChange={(e) => e.target.files && setImageFile(e.target.files[0])}
+              accept="image/*"
+              required
+            />
+          </div>
+          
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              className="flex-1 px-4 py-2 bg-gray-200 rounded"
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Save Event
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 

@@ -205,163 +205,177 @@ const SearchBar = ({ map ,  selectedPlace }: Props) => {
   };
 
   return (
-    <div style={{
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      borderRadius: '16px', 
-      position: 'absolute',
-      top: '10px',
-      left: '2%',
-      
-      zIndex: 1000,
-      width: '400px',
-      fontFamily: 'Arial, sans-serif',
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '12px 16px',
-        borderRadius: '16px',
-        boxShadow: '0px 6px 24px rgba(0, 0, 0, 0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        position: 'relative',
+   <div style={{
+  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  borderRadius: '16px',
+  position: 'absolute',
+  top: '10px',
+  left: '2%',
+  width: '100%',
+  maxWidth: '400px',
+  fontFamily: 'Arial, sans-serif',
+  boxSizing: 'border-box',
+}}>
+  <div style={{
+    backgroundColor: 'white',
+    padding: '12px 16px',
+    borderRadius: '16px',
+    boxShadow: '0px 6px 24px rgba(0, 0, 0, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    position: 'relative',
+    transition: '0.3s ease',
+    transform: 'scale(1)',
+    flexWrap: 'wrap',
+  }}>
+    <SearchIcon />
+    <input
+      ref={inputRef}
+      type="text"
+      placeholder="Search Google Maps..."
+      value={inputValue}
+      onChange={handleInputChange}
+      onKeyDown={handleKeyDown}
+      style={{
+        flex: 1,
+        minWidth: '180px',
+        padding: '10px 14px',
+        border: 'none',
+        outline: 'none',
+        fontSize: '16px',
+        borderRadius: '12px',
         transition: '0.3s ease',
-        transform: 'scale(1)',
+        boxShadow: activeSuggestionIndex !== -1 ? '0px 0px 10px rgba(63,81,181,0.5)' : 'none',
+      }}
+    />
+    {inputValue && (
+      <span onClick={clearInput} style={{
+        cursor: 'pointer',
+        fontSize: '20px',
+        color: '#aaa',
       }}>
-        {/* <span style={{ color: '#888', fontSize: '22px' }}>🔍</span> */}
-        <SearchIcon />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search Google Maps..."
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
+        <ClearIcon />
+      </span>
+    )}
+    {loading && <div style={{ fontSize: '16px', color: '#888' }}>⏳</div>}
+  </div>
+
+  {suggestions.length > 0 && (
+    <div style={{
+      marginTop: '10px',
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      boxShadow: '0px 6px 24px rgba(0, 0, 0, 0.3)',
+      maxHeight: '300px',
+      overflowY: 'auto',
+    }}>
+      {suggestions.map((suggestion, index) => (
+        <div
+          key={suggestion.place_id}
+          onClick={() => handleSelectSuggestion(suggestion.place_id, suggestion.description)}
           style={{
-            flex: 1,
-            padding: '10px 14px',
-            border: 'none',
-            outline: 'none',
-            fontSize: '16px',
-            borderRadius: '12px',
-            transition: '0.3s ease',
-            boxShadow: activeSuggestionIndex !== -1 ? '0px 0px 10px rgba(63,81,181,0.5)' : 'none',
-          }}
-        />
-        {inputValue && (
-          <span onClick={clearInput} style={{
+            padding: '12px 14px',
             cursor: 'pointer',
-            fontSize: '20px',
-            color: '#aaa',
-          }}>
-            <ClearIcon />
-          </span>
-        )}
-        {loading && <div style={{ fontSize: '16px', color: '#888' }}>⏳</div>}
-      </div>
-
-      {suggestions.length > 0 && (
-        <div style={{
-          marginTop: '10px',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          boxShadow: '0px 6px 24px rgba(0, 0, 0, 0.3)',
-          overflow: 'hidden',
-          maxHeight: '300px',
-          overflowY: 'auto',
-        }}>
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={suggestion.place_id}
-              onClick={() => handleSelectSuggestion(suggestion.place_id, suggestion.description)}
+            backgroundColor: index === activeSuggestionIndex ? '#e8f0fe' : 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            transition: 'background 0.3s',
+          }}
+          onMouseEnter={() => setActiveSuggestionIndex(index)}
+          onMouseLeave={() => setActiveSuggestionIndex(-1)}
+        >
+          {suggestion.photoUrl && (
+            <img
+              src={suggestion.photoUrl}
+              alt=""
               style={{
-                padding: '12px 14px',
-                cursor: 'pointer',
-                backgroundColor: index === activeSuggestionIndex ? '#e8f0fe' : 'white',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                transition: 'background 0.3s',
+                width: '48px',
+                height: '48px',
+                borderRadius: '8px',
+                objectFit: 'cover',
+                boxShadow: '0px 2px 6px rgba(0,0,0,0.3)',
               }}
-              onMouseEnter={() => setActiveSuggestionIndex(index)}
-              onMouseLeave={() => setActiveSuggestionIndex(-1)}
-            >
-              {suggestion.photoUrl && (
-                <img
-                  src={suggestion.photoUrl}
-                  alt=""
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '8px',
-                    objectFit: 'cover',
-                    boxShadow: '0px 2px 6px rgba(0,0,0,0.3)',
-                  }}
-                />
-              )}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                  {highlightMatch(suggestion.description, inputValue)}
-                </div>
-                {suggestion.secondaryText && (
-                  <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
-                    {suggestion.secondaryText}
-                  </div>
-                )}
+            />
+          )}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+              {highlightMatch(suggestion.description, inputValue)}
+            </div>
+            {suggestion.secondaryText && (
+              <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+                {suggestion.secondaryText}
               </div>
-            </div>
-          ))}
+            )}
+          </div>
         </div>
-      )}
-
-      {/* Recent Searches */}
-      <div style={{
-        margin: '12px',
-        paddingLeft: '10px',
-        color: '#555',
-        fontSize: '14px',
-      }}>
-        <strong>Recent Searches:</strong>
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          flexWrap: 'wrap',
-          marginTop: '8px',
-        }}>
-          {recentSearches.map((search, index) => (
-            <div
-              key={index}
-              onClick={() => setInputValue(search)}
-              style={{
-                backgroundColor: '#f5f5f5',
-                padding: '6px 12px',
-                borderRadius: '16px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'background 0.3s',
-              }}
-            >
-              {search}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Animations */}
-      <style>
-        {`
-          @keyframes bounceMarker {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-          }
-          @keyframes glowSearch {
-            0% { box-shadow: 0px 0px 8px rgba(63,81,181,0.5); }
-            100% { box-shadow: 0px 0px 12px rgba(63,81,181,0.8); }
-          }
-        `}
-      </style>
+      ))}
     </div>
+  )}
+
+  {/* Recent Searches */}
+  <div style={{
+    margin: '12px',
+    paddingLeft: '10px',
+    color: '#555',
+    fontSize: '14px',
+  }}>
+    <strong>Recent Searches:</strong>
+    <div style={{
+      display: 'flex',
+      gap: '8px',
+      flexWrap: 'wrap',
+      marginTop: '8px',
+    }}>
+      {recentSearches.map((search, index) => (
+        <div
+          key={index}
+          onClick={() => setInputValue(search)}
+          style={{
+            backgroundColor: '#f5f5f5',
+            padding: '6px 12px',
+            borderRadius: '16px',
+            fontSize: '14px',
+            cursor: 'pointer',
+            transition: 'background 0.3s',
+          }}
+        >
+          {search}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* Animations and Media Queries */}
+  <style>
+    {`
+      @keyframes bounceMarker {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+      }
+
+      @keyframes glowSearch {
+        0% { box-shadow: 0px 0px 8px rgba(63,81,181,0.5); }
+        100% { box-shadow: 0px 0px 12px rgba(63,81,181,0.8); }
+      }
+
+      @media (max-width: 600px) {
+        div[style*="position: absolute"] {
+          width: 95% !important;
+          left: 50% !important;
+          transform: translateX(-50%) !important;
+        }
+
+        input[type="text"] {
+          font-size: 14px !important;
+        }
+      }
+    `}
+  </style>
+</div>
+
   );
 };
 

@@ -14,14 +14,35 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all events
+// Get all events (with optional category filter)
 router.get('/', async (req, res) => {
   try {
-    const events = await Event.find();
+    const category = req.query.category as string;
+    let events;
+
+    if (category && category !== 'Бүгд') {
+      events = await Event.find({ category });
+    } else {
+      events = await Event.find();
+    }
+
     res.json(events);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 });
 
-export default router; 
+// Get event by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.json(event);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+export default router;

@@ -6,6 +6,10 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import DirectionsTransitIcon from '@mui/icons-material/DirectionsTransit';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
+import { useEffect } from 'react';
+
+// ...
+
 
 
 interface Place {
@@ -28,6 +32,7 @@ interface Props {
   showDirectionsForm: boolean;
   setShowDirectionsForm: React.Dispatch<React.SetStateAction<boolean>>;
   selectedPlace: Place | null;
+  userLocation: google.maps.LatLngLiteral | null;
 }
 
 const DirectionsForm: React.FC<Props> = ({
@@ -41,7 +46,16 @@ const DirectionsForm: React.FC<Props> = ({
   showDirectionsForm,
   setShowDirectionsForm,
   selectedPlace,
+  userLocation,
 }) => {
+
+  
+useEffect(() => {
+  if (selectedPlace?.formatted_address) {
+    setDestination(selectedPlace.formatted_address);
+  }
+}, [selectedPlace]);
+
 
   const travelModes = [
     { mode: 'DRIVING', label: <DirectionsCarIcon /> },
@@ -53,6 +67,7 @@ const DirectionsForm: React.FC<Props> = ({
 const [destinationAutoComplete, setDestinationAutoComplete] = useState<google.maps.places.Autocomplete | null>(null);
 
 console.log('setSelectedPlace in the directionForm', selectedPlace);
+console.log('origin in the directionForm', origin); 
 
   // "Get Directions" button
   if (!showDirectionsForm) {
@@ -62,7 +77,9 @@ console.log('setSelectedPlace in the directionForm', selectedPlace);
         style={{
           position: 'absolute',
           top: '10px',
-          left: '710px',
+          left: '40%',
+          maxWidth: '55px',
+          width: '100%',
           zIndex: 10,
           backgroundColor: '#2563eb', // Tailwind's blue-600
           color: 'white',
@@ -157,16 +174,43 @@ console.log('setSelectedPlace in the directionForm', selectedPlace);
       {/* Inputs */}
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <Autocomplete onLoad={setOriginAutoComplete} onPlaceChanged={() => {
-  if (originAutoComplete) {
-    const place = originAutoComplete.getPlace();
-    if (place.formatted_address) setOrigin(place.formatted_address);
-  }
-}}>
+        if (originAutoComplete) {
+          const place = originAutoComplete.getPlace();
+          if (place.formatted_address) setOrigin(place.formatted_address);
+        }
+      }}>
+        <input
+          type="text"
+          placeholder="Enter starting point"
+          value={origin}
+          onChange={(e) => setOrigin(e.target.value)}
+          style={{
+            width: '60%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
+        />
+      </Autocomplete>
+
+     <Autocomplete
+  onLoad={setDestinationAutoComplete}
+  onPlaceChanged={() => {
+    if (destinationAutoComplete) {
+      const place = destinationAutoComplete.getPlace();
+      if (place.formatted_address) {
+        setDestination(place.formatted_address);
+      }
+    }
+  }}
+>
   <input
     type="text"
-    placeholder="Enter starting point"
-    value={origin}
-    onChange={(e) => setOrigin(e.target.value)}
+    placeholder="Enter destination"
+    value={destination}
+    onChange={(e) => {
+      setDestination(e.target.value);
+    }}
     style={{
       width: '60%',
       padding: '8px',
@@ -176,33 +220,7 @@ console.log('setSelectedPlace in the directionForm', selectedPlace);
   />
 </Autocomplete>
 
-<Autocomplete onLoad={setDestinationAutoComplete} onPlaceChanged={() => {
-  if (destinationAutoComplete) {
-    const place = destinationAutoComplete.getPlace();
-    if (place.formatted_address) setDestination(place.formatted_address);
-  }
-}}>
-  <input
-    type="text"
-    placeholder="Enter destination"
-    value={destination}
-    onChange={(e) => {
-      const value = e.target.value;
-      if (value) {
-        setDestination(value);
-      } else if (selectedPlace) {
-        setDestination(selectedPlace.formatted_address);
-      }
-    }}
-    
-    style={{
-      width: '60%',
-      padding: '8px',
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-    }}
-  />
-</Autocomplete>
+
 
 
         <button

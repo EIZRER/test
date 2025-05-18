@@ -1,33 +1,46 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
-const eventSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  date: {
-    type: Date,
-    required: true,
-  },
-  time: String,
-  imageUrl: String,
-  location: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-  organizer: String,
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+interface ILocation {
+  latitude: number;
+  longitude: number;
+  address?: string;
+}
+
+export interface IEvent extends Document {
+  title: string;
+  description: string;
+  date: Date;
+  time?: string;
+  category: string;
+  price: number;
+  imageUrl: string;
+  location: ILocation;
+  venue?: string;
+  organizer: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const locationSchema = new Schema<ILocation>({
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  address: { type: String }
 });
 
-export const Event = mongoose.model('Event', eventSchema);
+const eventSchema = new Schema<IEvent>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    date: { type: Date, required: true },
+    time: { type: String },
+    category: { type: String, required: true },
+    price: { type: Number, required: true, default: 0 },
+    imageUrl: { type: String, required: true },
+    location: { type: locationSchema, required: true },
+    venue: { type: String },
+    organizer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  },
+  { timestamps: true }
+);
+
+export const Event = mongoose.model<IEvent>('Event', eventSchema);

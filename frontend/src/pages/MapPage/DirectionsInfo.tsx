@@ -11,8 +11,8 @@ const DirectionsInfo: React.FC<DirectionsInfoProps> = ({ route }) => {
     <div
       style={{
         position: 'absolute',
-        top: '1rem',
-        right: '1rem',
+        top: '35% ',
+        left: '1rem',
         width: '24rem',
         backgroundColor: 'white',
         borderRadius: '1rem',
@@ -22,6 +22,7 @@ const DirectionsInfo: React.FC<DirectionsInfoProps> = ({ route }) => {
         maxHeight: '80vh',
         zIndex: 50,
         fontFamily: 'Arial, sans-serif',
+        height: '300px',
       }}
     >
       <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
@@ -64,4 +65,4 @@ const DirectionsInfo: React.FC<DirectionsInfoProps> = ({ route }) => {
   );
 };
 
-export default DirectionsInfo;
+export default DirectionsInfo;  

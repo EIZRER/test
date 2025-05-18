@@ -108,7 +108,7 @@ const StreetViewButton: React.FC<StreetViewButtonProps> = ({ map, googleApiKey, 
           style={{
             position: 'absolute',
             top: '80%',
-            left: '25px',
+            left: '2%',
             zIndex: 5,
             backgroundColor: 'white',
             padding: '10px 15px',

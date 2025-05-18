@@ -11,20 +11,16 @@ interface PlaceInfoWindowProps {
     user_ratings_total?: number;
     opening_hours?: { open_now: boolean };
     photo?: string;
-    infoWindowOpen?: boolean;
   };
   onClose: () => void;
 }
 
 const PlaceInfoWindow: React.FC<PlaceInfoWindowProps> = ({ place, onClose }) => {
-  const Plat = place.lat + 0.0003;
-  
-  // Only show the InfoWindow if infoWindowOpen is true or undefined
-  if (place.infoWindowOpen === false) {
-    return null;
-  }
-
-  return (
+ 
+    const Plat = place.lat + 0.0003;
+    return (
+    
+   
     <InfoWindow position={{ lat: Plat, lng: place.lng }} onCloseClick={onClose}>
       <div style={{ width: '250px' }}>
         {place.photo && (

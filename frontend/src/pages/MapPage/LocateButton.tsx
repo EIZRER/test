@@ -31,7 +31,6 @@ const LocateButton: React.FC<LocateButtonProps> = ({ map, setUserLocation, selec
         position: 'absolute',
         top: '70%',
         left: '95%',
-        zIndex: 5,
         backgroundColor: 'white',
         padding: '10px 15px',
         borderRadius: '8px',
