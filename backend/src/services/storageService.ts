@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { config } from '../config';
 
 /**
  * Service for handling file storage operations
@@ -89,6 +90,21 @@ class StorageService {
       console.error('Error deleting file:', error);
       return false;
     }
+  }
+
+  /**
+   * Convert relative path to full URL
+   * @param relativePath The relative path of the file
+   * @returns Full URL
+   */
+  getFullUrl(relativePath: string): string {
+    if (!relativePath) return '';
+    if (relativePath.startsWith('http')) return relativePath;
+    
+    const baseUrl = config.baseUrl || 'http://localhost:5000';
+    // Ensure proper path handling
+    const cleanPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+    return `${baseUrl}${cleanPath}`;
   }
 }
 

@@ -14,7 +14,8 @@ declare global {
 }
 
 export const protect = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies.jwt;
+  // Check for token in cookies (either 'jwt' or 'token')
+  const token = req.cookies.jwt || req.cookies.token;
 
   if (!token) {
     res.status(401);
@@ -24,6 +25,12 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
   try {
     const decoded = jwt.verify(token, config.jwtSecret) as { id: string };
     req.user = await User.findById(decoded.id).select('-password');
+    
+    if (!req.user) {
+      res.status(401);
+      throw new Error('User not found');
+    }
+    
     next();
   } catch (error) {
     res.status(401);

@@ -17,8 +17,13 @@ const App: React.FC = () => {
         <Router>
           <div className="min-h-screen flex flex-col">
             <Routes>
+              {/* Public routes */}
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              
+              {/* Protected routes */}
               <Route
                 path="/profile"
                 element={
@@ -32,22 +37,6 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <MyEventsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <HomePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/events/:id"
-                element={
-                  <ProtectedRoute>
-                    <EventDetail />
                   </ProtectedRoute>
                 }
               />

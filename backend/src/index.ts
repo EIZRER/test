@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import eventRoutes from './routes/eventRoutes';
 import { config } from './config';
+import fs from 'fs';
 
 const app: Application = express();
 const PORT = config.port;
@@ -19,7 +20,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Static files
+// Static files - ensure uploads directory is accessible
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check route
@@ -48,6 +49,21 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     stack: config.nodeEnv === 'production' ? '🥞' : err.stack 
   });
 });
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  
+  // Create subdirectories
+  const subdirs = ['avatars', 'covers', 'events'];
+  subdirs.forEach(dir => {
+    const subDir = path.join(uploadsDir, dir);
+    if (!fs.existsSync(subDir)) {
+      fs.mkdirSync(subDir, { recursive: true });
+    }
+  });
+}
 
 // Connect to DB and start server
 const startServer = async () => {

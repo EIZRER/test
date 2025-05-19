@@ -36,7 +36,16 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   if (user) {
     const token = generateToken(user._id);
+    
+    // Set both cookie names for compatibility
     res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+    
+    res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development',
       sameSite: 'strict',
@@ -65,7 +74,16 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   if (user && (await user.matchPassword(password))) {
     const token = generateToken(user._id);
+    
+    // Set both cookie names for compatibility
     res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+    
+    res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development',
       sameSite: 'strict',
@@ -88,10 +106,17 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
+  // Clear both cookie types
   res.cookie('jwt', '', {
     httpOnly: true,
     expires: new Date(0),
   });
+  
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+  
   res.status(200).json({ message: 'Logged out successfully' });
 });
 

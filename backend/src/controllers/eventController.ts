@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { Event } from '../models/Event';
 import fs from 'fs';
 import path from 'path';
+import { storageService } from '../services/storageService';
 
 // Get all events with optional filtering
 export const getEvents = asyncHandler(async (req: Request, res: Response) => {
@@ -13,7 +14,17 @@ export const getEvents = asyncHandler(async (req: Request, res: Response) => {
     : {};
   
   const events = await Event.find(filter).populate('organizer', 'username firstName lastName');
-  res.json(events);
+  
+  // Convert image paths to full URLs
+  const eventsWithUrls = events.map(event => {
+    const eventObj = event.toObject();
+    if (eventObj.imageUrl) {
+      eventObj.imageUrl = storageService.getFullUrl(eventObj.imageUrl);
+    }
+    return eventObj;
+  });
+  
+  res.json(eventsWithUrls);
 });
 
 // Get events created by a specific user
@@ -23,13 +34,21 @@ export const getUserEvents = asyncHandler(async (req: Request, res: Response) =>
   const events = await Event.find({ organizer: userId });
 
   if (!events.length) {
-    res.status(200).json([]); // ✅ don't return it
-    return; // ✅ this is fine — it exits the function
+    res.status(200).json([]); 
+    return;
   }
 
-  res.json(events);
-});
+  // Convert image paths to full URLs
+  const eventsWithUrls = events.map(event => {
+    const eventObj = event.toObject();
+    if (eventObj.imageUrl) {
+      eventObj.imageUrl = storageService.getFullUrl(eventObj.imageUrl);
+    }
+    return eventObj;
+  });
 
+  res.json(eventsWithUrls);
+});
 
 // Get a single event by ID
 export const getEventById = asyncHandler(async (req: Request, res: Response) => {
@@ -42,7 +61,13 @@ export const getEventById = asyncHandler(async (req: Request, res: Response) => 
     throw new Error('Event not found');
   }
   
-  res.json(event);
+  // Convert image path to full URL
+  const eventObj = event.toObject();
+  if (eventObj.imageUrl) {
+    eventObj.imageUrl = storageService.getFullUrl(eventObj.imageUrl);
+  }
+  
+  res.json(eventObj);
 });
 
 // Create a new event
@@ -52,29 +77,13 @@ export const createEvent = asyncHandler(async (req: Request, res: Response) => {
     throw new Error('Not authorized');
   }
   
-  // Create uploads directory if it doesn't exist
-  const uploadsDir = path.join(__dirname, '../../uploads/events');
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
-  
-  let imageUrl = '';
-  
-  if (req.file) {
-    // Generate unique filename
-    const fileExt = path.extname(req.file.originalname);
-    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
-    const filePath = path.join(uploadsDir, fileName);
-    
-    // Save the file
-    fs.writeFileSync(filePath, req.file.buffer);
-    
-    // Set the image URL
-    imageUrl = `/uploads/events/${fileName}`;
-  } else {
+  if (!req.file) {
     res.status(400);
     throw new Error('Image is required');
   }
+  
+  // Upload image using storage service
+  const imageUrl = await storageService.uploadFile(req.file, 'events');
   
   const { 
     title, 
@@ -106,7 +115,11 @@ export const createEvent = asyncHandler(async (req: Request, res: Response) => {
   
   const event = await Event.create(eventData);
   
-  res.status(201).json(event);
+  // Convert image path to full URL for response
+  const eventObj = event.toObject();
+  eventObj.imageUrl = storageService.getFullUrl(eventObj.imageUrl);
+  
+  res.status(201).json(eventObj);
 });
 
 // Update an event
@@ -134,27 +147,13 @@ export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
   let imageUrl = event.imageUrl;
   
   if (req.file) {
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(__dirname, '../../uploads/events');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    // Delete old image if it exists
+    if (event.imageUrl) {
+      await storageService.deleteFile(event.imageUrl);
     }
     
-    // Generate unique filename
-    const fileExt = path.extname(req.file.originalname);
-    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
-    const filePath = path.join(uploadsDir, fileName);
-    
-    // Save the file
-    fs.writeFileSync(filePath, req.file.buffer);
-    
-    // Delete old image if it exists and is not the default
-    if (event.imageUrl && !event.imageUrl.includes('placeholder') && fs.existsSync(path.join(__dirname, '../..', event.imageUrl))) {
-      fs.unlinkSync(path.join(__dirname, '../..', event.imageUrl));
-    }
-    
-    // Set the new image URL
-    imageUrl = `/uploads/events/${fileName}`;
+    // Upload new image
+    imageUrl = await storageService.uploadFile(req.file, 'events');
   }
   
   const { 
@@ -194,7 +193,11 @@ export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
     { new: true }
   );
   
-  res.json(updatedEvent);
+  // Convert image path to full URL for response
+  const eventObj = updatedEvent!.toObject();
+  eventObj.imageUrl = storageService.getFullUrl(eventObj.imageUrl);
+  
+  res.json(eventObj);
 });
 
 // Delete an event
@@ -219,9 +222,9 @@ export const deleteEvent = asyncHandler(async (req: Request, res: Response) => {
     throw new Error('Not authorized to delete this event');
   }
   
-  // Delete the image file if it exists and is not a placeholder
-  if (event.imageUrl && !event.imageUrl.includes('placeholder') && fs.existsSync(path.join(__dirname, '../..', event.imageUrl))) {
-    fs.unlinkSync(path.join(__dirname, '../..', event.imageUrl));
+  // Delete the image file
+  if (event.imageUrl) {
+    await storageService.deleteFile(event.imageUrl);
   }
   
   await Event.findByIdAndDelete(id);

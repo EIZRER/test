@@ -8,7 +8,7 @@ import EventInfo from '../EventDetailPage/EventInfo';
 import EventImage from './EventImg';
 import EventMeta from './EventMeta';
 import EventLocation from './EventLocation';
-import { fetchEventById } from '../../services/api';
+import { fetchEventById, getImageUrl } from '../../services/api';
 import type { Event } from './types';
 import { useUser } from '../../contexts/UserContext';
 
@@ -137,7 +137,7 @@ export default function EventDetailPage() {
             <div 
               className="w-full h-80 bg-cover bg-center"
               style={{
-                backgroundImage: `url(${event.imageUrl || '/images/event-placeholder.jpg'})`,
+                backgroundImage: `url(${getImageUrl(event.imageUrl)})`,
                 filter: 'brightness(85%)'
               }}
             />

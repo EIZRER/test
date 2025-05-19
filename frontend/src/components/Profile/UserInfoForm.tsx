@@ -10,7 +10,7 @@ interface UserInfo {
   firstName: string;
   phone: string;
   email: string;
-  about: string;
+  about?: string;
 }
 
 interface UserInfoFormProps {

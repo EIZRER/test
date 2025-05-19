@@ -2,7 +2,8 @@ import axios from 'axios';
 import { Event, EventCategory } from '../types/event';
 
 // Base API configuration
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = API_URL.replace('/api', '');
 
 const api = axios.create({
   baseURL: API_URL,
@@ -11,6 +12,16 @@ const api = axios.create({
   },
   withCredentials: true,
 });
+
+// Helper function to convert relative image paths to absolute URLs
+export const getImageUrl = (imagePath: string | undefined): string => {
+  if (!imagePath) return 'https://via.placeholder.com/300x200?text=No+Image';
+  if (imagePath.startsWith('http')) return imagePath;
+  
+  // Ensure the path is properly formatted relative to the BASE_URL
+  const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+  return `${BASE_URL}${cleanPath}`;
+};
 
 // Error handling interceptor
 api.interceptors.response.use(

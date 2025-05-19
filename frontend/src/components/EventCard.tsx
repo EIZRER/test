@@ -3,6 +3,7 @@ import { Event } from '../types/event';
 import { CalendarOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { Card, Button, Typography } from 'antd';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../services/api';
 
 const { Text, Title } = Typography;
 
@@ -29,7 +30,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <div className="aspect-[3/2] overflow-hidden">
           <img
             alt={event.title}
-            src={event.imageUrl}
+            src={getImageUrl(event.imageUrl)}
             className="w-full h-full object-cover"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image';
@@ -65,7 +66,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           {event.price.toLocaleString()}₮
         </Text>
         <Link to={`/events/${event._id}`}>
-          <Button type="primary">
+          <Button type="primary"  className="bg-blue-600 hover:bg-blue-700 text-white border-none">
             Дэлгэрэнгүй
           </Button>
         </Link>
