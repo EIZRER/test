@@ -14,6 +14,8 @@ const HomePage: React.FC = () => {
   
   // Check if createEvent query parameter exists
   const shouldCreateEvent = new URLSearchParams(location.search).get('createEvent') === 'true';
+  // Check if mapView parameter exists
+  const showMapView = new URLSearchParams(location.search).get('mapView') === 'true';
 
   // Fetch events on component mount - extracted to reusable function
   const getEvents = useCallback(async () => {
@@ -39,19 +41,23 @@ const HomePage: React.FC = () => {
     message.success('Event added successfully and has been added to your events list!');
   };
 
+  // Determine heights based on mapView
+  const mapHeight = showMapView ? 'h-[80vh]' : 'h-[60vh]';
+  const contentDisplay = showMapView ? 'hidden' : 'block';
+
   return (
     <MainLayout>
       <div className="flex flex-col w-full">
         {/* Map section */}
-        <div className="w-full h-[60vh] md:h-[65vh] relative border-b border-gray-200">
+        <div className={`w-full ${mapHeight} md:h-[65vh] relative border-b border-gray-200`}>
           <Map 
             initialCreateEvent={shouldCreateEvent} 
             onEventAdded={handleEventAdded}
           />
         </div>
         
-        {/* Event listing section */}
-        <section className="container mx-auto px-4 py-8">
+        {/* Event listing section - hide when mapView is true */}
+        <section className={`container mx-auto px-4 py-8 ${contentDisplay}`}>
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-2">Upcoming Events</h2>
             <p className="text-gray-600">Discover and join exciting events near you</p>

@@ -4,7 +4,7 @@ import { MainLayout } from '../components/MainLayout';
 import { ProfileBanner } from '../components/Profile/ProfileBanner';
 import { UserInfoForm } from '../components/Profile/UserInfoForm';
 import { MyEvents } from '../components/Profile/MyEvents';
-import { getUserProfile, updateUserProfile, uploadUserImage, getUserEvents } from '../services/api';
+import { getUserProfile, updateUserProfile, uploadUserImage, getUserEvents, getImageUrl } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import { IUser } from '../types/user';
 import { Event } from '../types/event';
@@ -28,6 +28,7 @@ export const Profile: React.FC = () => {
         getUserProfile(authUser._id),
         getUserEvents(authUser._id),
       ]);
+      console.log('User profile data:', userResponse.data);
       setUser(userResponse.data);
       setEvents(eventsResponse.data);
     } catch (error) {
@@ -67,7 +68,9 @@ export const Profile: React.FC = () => {
     
     try {
       setUploadingCover(true);
+      console.log("Uploading cover image:", file.name, file.size);
       const response = await uploadUserImage(authUser._id, file, 'cover');
+      console.log("Cover image upload response:", response.data);
       setUser(response.data);
       
       // Refresh the user context
@@ -85,7 +88,9 @@ export const Profile: React.FC = () => {
     
     try {
       setUploadingAvatar(true);
+      console.log("Uploading avatar image:", file.name, file.size);
       const response = await uploadUserImage(authUser._id, file, 'avatar');
+      console.log("Avatar image upload response:", response.data);
       setUser(response.data);
       
       // Refresh the user context
@@ -98,11 +103,17 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const getFullImageUrl = (path?: string) => {
-    if (!path) return undefined;
-    if (path.startsWith('http')) return path;
-    return `${API_URL}${path}`;
-  };
+  // Log image URLs for debugging
+  useEffect(() => {
+    if (user) {
+      console.log("User image URLs:", {
+        avatarUrl: user.avatarUrl,
+        coverImageUrl: user.coverImageUrl,
+        avatarFullUrl: user.avatarUrl ? getImageUrl(user.avatarUrl) : undefined,
+        coverFullUrl: user.coverImageUrl ? getImageUrl(user.coverImageUrl) : undefined
+      });
+    }
+  }, [user]);
 
   if (loading || !user) {
     return (
@@ -120,8 +131,8 @@ export const Profile: React.FC = () => {
         <div className="container mx-auto px-4 py-8">
           <Card className="mb-6 shadow-sm overflow-hidden">
             <ProfileBanner
-              coverImage={getFullImageUrl(user.coverImageUrl)}
-              avatarUrl={getFullImageUrl(user.avatarUrl)}
+              coverImage={user.coverImageUrl ? getImageUrl(user.coverImageUrl) : undefined}
+              avatarUrl={user.avatarUrl ? getImageUrl(user.avatarUrl) : undefined}
               onCoverChange={handleCoverChange}
               onAvatarChange={handleAvatarChange}
             />

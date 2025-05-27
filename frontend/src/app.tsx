@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntApp } from 'antd';
-import { UserProvider } from '../src/contexts/UserContext';
+import { UserProvider } from './contexts/UserContext';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
 import { Profile } from './pages/Profile'
@@ -17,11 +17,13 @@ const App: React.FC = () => {
         <Router>
           <div className="min-h-screen flex flex-col">
             <Routes>
-              {/* Public routes */}
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<Login />} />
+              {/* Main routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/events/:id" element={<EventDetail />} />
+              
+              {/* Auth routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
               
               {/* Protected routes */}
               <Route
@@ -40,6 +42,9 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </Router>

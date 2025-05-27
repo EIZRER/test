@@ -41,7 +41,7 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
       style={{
         position: 'absolute',
         top: '10px',
-        left: '25%',
+        left: '30%',
         zIndex: 10,
         width: '100%',
         maxWidth: '240px',

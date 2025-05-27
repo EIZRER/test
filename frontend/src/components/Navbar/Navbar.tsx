@@ -30,9 +30,13 @@ export const Navbar: React.FC = () => {
 
   return (
     <Header className="bg-white shadow-sm px-4 h-16 flex items-center fixed w-full top-0 z-50">
-      <div className="container mx-auto flex items-center justify-between gap-8">
-        <Logo />
-        <SearchBar onSearch={handleSearch} />
+      <div className="container mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-10">
+          <Logo />
+          <div className="w-[300px] lg:w-[400px]">
+            <SearchBar onSearch={handleSearch} />
+          </div>
+        </div>
         <NavbarButtons
           onMyEventsClick={handleMyEventsClick}
           onProfileClick={handleProfileClick}

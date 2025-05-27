@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Upload, Avatar, message, Spin } from 'antd';
 import { CameraOutlined, UserOutlined, LoadingOutlined } from '@ant-design/icons';
-import type { UploadFile } from 'antd/lib/upload/interface';
+import type { UploadFile, RcFile } from 'antd/lib/upload/interface';
 
 interface ProfileBannerProps {
   coverImage?: string;
@@ -19,49 +19,78 @@ export const ProfileBanner: React.FC<ProfileBannerProps> = ({
   const [coverLoading, setCoverLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   
+  // Custom request handler for both upload components
+  const customRequest = ({ file, onSuccess }: { file: any; onSuccess?: (response: any) => void }) => {
+    // Mark as success immediately (we'll handle the real upload in onChange)
+    setTimeout(() => {
+      onSuccess?.('ok');
+    }, 0);
+  };
+  
+  // Check file before upload
+  const beforeUpload = (file: RcFile) => {
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      message.error('You can only upload image files!');
+    }
+    
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error('Image must be smaller than 2MB!');
+    }
+    
+    return isImage && isLt2M;
+  };
+  
   const handleCoverChange = async (info: any) => {
-    if (info.file.status === 'uploading') {
+    const { status, originFileObj } = info.file;
+    
+    if (status === 'uploading') {
       setCoverLoading(true);
       return;
     }
     
-    if (info.file.status === 'done' || info.file.status === 'error') {
-      setCoverLoading(false);
-    }
-    
-    try {
-      if (info.file.originFileObj && onCoverChange) {
-        await onCoverChange(info.file.originFileObj);
-        message.success('Cover image updated successfully');
+    if (status === 'done') {
+      try {
+        if (originFileObj && onCoverChange) {
+          await onCoverChange(originFileObj);
+          message.success('Cover image updated successfully');
+        }
+      } catch (error) {
+        console.error('Error uploading cover image:', error);
+        message.error('Failed to update cover image');
+      } finally {
+        setCoverLoading(false);
       }
-    } catch (error) {
-      console.error('Error uploading cover image:', error);
-      message.error('Failed to update cover image');
-    } finally {
+    } else if (status === 'error') {
       setCoverLoading(false);
+      message.error('Failed to upload cover image');
     }
   };
   
   const handleAvatarChange = async (info: any) => {
-    if (info.file.status === 'uploading') {
+    const { status, originFileObj } = info.file;
+    
+    if (status === 'uploading') {
       setAvatarLoading(true);
       return;
     }
     
-    if (info.file.status === 'done' || info.file.status === 'error') {
-      setAvatarLoading(false);
-    }
-    
-    try {
-      if (info.file.originFileObj && onAvatarChange) {
-        await onAvatarChange(info.file.originFileObj);
-        message.success('Profile picture updated successfully');
+    if (status === 'done') {
+      try {
+        if (originFileObj && onAvatarChange) {
+          await onAvatarChange(originFileObj);
+          message.success('Profile picture updated successfully');
+        }
+      } catch (error) {
+        console.error('Error uploading avatar:', error);
+        message.error('Failed to update profile picture');
+      } finally {
+        setAvatarLoading(false);
       }
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      message.error('Failed to update profile picture');
-    } finally {
+    } else if (status === 'error') {
       setAvatarLoading(false);
+      message.error('Failed to upload profile picture');
     }
   };
 
@@ -76,11 +105,8 @@ export const ProfileBanner: React.FC<ProfileBannerProps> = ({
         <Upload
           accept="image/*"
           showUploadList={false}
-          customRequest={({ file, onSuccess }) => {
-            setTimeout(() => {
-              onSuccess?.('ok');
-            }, 0);
-          }}
+          customRequest={customRequest}
+          beforeUpload={beforeUpload}
           onChange={handleCoverChange}
         >
           <Button
@@ -109,11 +135,8 @@ export const ProfileBanner: React.FC<ProfileBannerProps> = ({
           <Upload
             accept="image/*"
             showUploadList={false}
-            customRequest={({ file, onSuccess }) => {
-              setTimeout(() => {
-                onSuccess?.('ok');
-              }, 0);
-            }}
+            customRequest={customRequest}
+            beforeUpload={beforeUpload}
             onChange={handleAvatarChange}
           >
             <Button

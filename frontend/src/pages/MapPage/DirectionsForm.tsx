@@ -77,7 +77,7 @@ console.log('origin in the directionForm', origin);
         style={{
           position: 'absolute',
           top: '10px',
-          left: '40%',
+          left: '50%',
           maxWidth: '55px',
           width: '100%',
           zIndex: 10,
